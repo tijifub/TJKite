@@ -7,11 +7,11 @@
     "dev": "node server.js",
     "sync": "node sync-public.js",
     "predev:cf": "npm run sync",
-    "dev:cf": "cd cloudflare && wrangler pages dev",
+    "dev:cf": "wrangler pages dev",
     "predeploy": "npm run sync",
-    "deploy": "cd cloudflare && wrangler pages deploy",
-    "kv:create": "cd cloudflare && wrangler kv namespace create TJKITE_KV && wrangler kv namespace create TJKITE_KV --preview",
-    "secret:set": "cd cloudflare && wrangler pages secret put TJKITE_PASSWORD"
+    "deploy": "wrangler pages deploy",
+    "kv:create": "wrangler kv namespace create TJKITE_KV && wrangler kv namespace create TJKITE_KV --preview",
+    "secret:set": "wrangler pages secret put TJKITE_PASSWORD"
   },
   "devDependencies": {
     "wrangler": "^3"
