@@ -2,9 +2,7 @@ name = "tjkite"
 compatibility_date = "2026-04-01"
 pages_build_output_dir = "public"
 
-# Replace `id` with the namespace id from `wrangler kv:namespace create TJKITE_KV`.
-# `preview_id` is used by `wrangler pages dev` for local development.
 [[kv_namespaces]]
 binding = "TJKITE_KV"
-id = ""
-preview_id = ""
+id = "fabf47be7fa448f8a18f8a1740453c13"
+preview_id = "fabf47be7fa448f8a18f8a1740453c13"
