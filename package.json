@@ -1,0 +1,16 @@
+{
+  "name": "tjkite",
+  "version": "1.0.0",
+  "private": true,
+  "description": "TJKite kite school manager — local Node server + Cloudflare Pages deploy.",
+  "scripts": {
+    "dev": "node server.js",
+    "dev:cf": "cd cloudflare && wrangler pages dev",
+    "deploy": "cd cloudflare && wrangler pages deploy",
+    "kv:create": "cd cloudflare && wrangler kv namespace create TJKITE_KV && wrangler kv namespace create TJKITE_KV --preview",
+    "secret:set": "cd cloudflare && wrangler pages secret put TJKITE_PASSWORD"
+  },
+  "devDependencies": {
+    "wrangler": "^3"
+  }
+}

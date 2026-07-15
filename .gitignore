@@ -1,0 +1,11 @@
+node_modules/
+.wrangler/
+.dev.vars
+.DS_Store
+tjkite-server.log
+
+# Local-only state file — production state lives in Cloudflare KV.
+shared-data.json
+
+# Source import file (PII); deployed data lives in students-data.js behind auth.
+students.csv
