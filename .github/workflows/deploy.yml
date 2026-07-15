@@ -18,6 +18,9 @@ jobs:
         with:
           node-version: 20
 
+      - name: Sync public assets
+        run: node sync-public.js
+
       - name: Deploy
         uses: cloudflare/wrangler-action@v3
         with:
