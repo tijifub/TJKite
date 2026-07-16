@@ -70,7 +70,7 @@ const SEED = {
     schoolName: "My TJKite Manager",
     defaultLang: "en",
     currency: "EUR",
-    spotName: "Brouwersdam, NL",
+    spotName: "Sample Spot, NL",
     lat: 51.7334,
     lon: 3.9025,
     windyKey: "xnD10IQzErTgk8b0T26Q4Un77eWPP6cs",
@@ -83,8 +83,7 @@ const SEED = {
     tideThresholdM: 1.8,       // used when mode = "level"
     tideLowTideWindowH: 3,     // hours either side of low tide used when mode = "hour"
     // Auth
-    adminPassword: "tjkite2026",  // change this in Settings
-    ownerPassword: "owner2026", // change this in Settings
+    // (per-admin passwords live in state.admins[].password; instructor PINs in state.instructors[].pin)
     // Commission rates (€/h) — editable in Settings → Rates
     courseRates: { GK:25, KC:25, AK:25, SCH:25, IT:30, KK:30, DIT:35, "WF-BC":35, "WF-C":35, "WF-IT":35, "WF-DIT":35 },
     taskRate: 15
@@ -92,23 +91,22 @@ const SEED = {
   students: [
     { id: _stuTest, name: "Test Student", phone: TEST_PHONE, email: TIJI_EMAIL,
       level: "Beginner", language: "en", packageName: "Test pack 5h", hoursBooked: 5,
-      coursePrice: 0, amountPaid: 0, balanceOwed: 0, notes: "Test entry — pings Tiji.", createdAt: todayISO() }
+      coursePrice: 0, amountPaid: 0, balanceOwed: 0, notes: "Test entry.", createdAt: todayISO() }
   ],
   instructors: [
-    { id: uid(), name: "Naji", phone: "+4917640436042", email: "", languages: ["en"], notes: "" },
-    { id: uid(), name: "Dudley", phone: "+27 647238288", email: "", languages: ["en"], notes: "" }
+    { id: uid(), name: "Instructor 1", phone: "", email: "", languages: ["en"], notes: "", pin: "1234" },
+    { id: uid(), name: "Instructor 2", phone: "", email: "", languages: ["en"], notes: "", pin: "1234" }
   ],
   lessons: [],
   tasks: [],
   admins: [
-    { id: "adm0tanya", name: "Tanya",  password: "tjkite2026",    hourRate: 15 },
-    { id: "adm0annik", name: "Annika", password: "annika2026", hourRate: 15 },
+    { id: "adm0admin", name: "Admin", password: "1234", hourRate: 15 },
   ],
   myHours: {},   // keyed by adminId: { [adminId]: { [YYYY-MM-DD]: { session, notes } } }
   vouchers: [],  // { no, recipientName, studentId, service, amount, date, issuedAt }
   templates: {
     en: {
-      confirm: "Hi {student}, this is TJKite. Your {course} is confirmed for {date} at {time} ({hours}h). Instructor: {instructor}. Spot: {spot}. Wind forecast: {wind}. See you at Brouwersdam!",
+      confirm: "Hi {student}, this is TJKite. Your {course} is confirmed for {date} at {time} ({hours}h). Instructor: {instructor}. Spot: {spot}. Wind forecast: {wind}. See you there!",
       update:  "Hi {student}, quick TJKite update for your {course} on {date} at {time}: {message}. Instructor: {instructor}. Reply here if anything is unclear. - TJKite",
       cancel:     "Hi {student}, unfortunately your {course} on {date} at {time} is cancelled ({reason}). We'll reschedule - please reply with your availability. - TJKite",
       reschedule: "Hi {student}, we need to reschedule your {course} that was planned for {date} at {time} ({reason}). Your new slot is {new_date} at {new_time}. Please confirm! - TJKite",
@@ -611,7 +609,7 @@ function buildTjkiteStudent(g) {
     language: "en",
     packageName: g.course
       ? "TJKite · " + g.course
-      : (g.arrival === g.departure ? "Day visit" : "TJKite Brouwersdam guest"),
+      : (g.arrival === g.departure ? "Day visit" : "TJKite guest"),
     hoursBooked: g.course ? (TJKITE_COURSE_PLAN[g.course]?.hours || []).reduce((sum,h)=>sum+h,0) : 0,
     amountPaid: 0,
     balanceOwed: 0,
@@ -625,7 +623,7 @@ function buildTjkiteStudent(g) {
     startTime: g.startTime || "",
     sparpreis: !!g.sparpreis,
     tjkiteKey: tjkiteGuestKey(g),
-    notes: "TJKite Brouwersdam · " + g.arrival + " → " + g.departure + (g.country ? " · " + g.country : "") + (g.course ? " · " + g.course : "") + (g.sparpreis ? " · Sparpreis" : "") + (g.newsletter ? " · newsletter" : ""),
+    notes: "TJKite · " + g.arrival + " → " + g.departure + (g.country ? " · " + g.country : "") + (g.course ? " · " + g.course : "") + (g.sparpreis ? " · Sparpreis" : "") + (g.newsletter ? " · newsletter" : ""),
     createdAt: todayISO()
   };
 }
@@ -688,7 +686,7 @@ function syncTjkiteState(s) {
         startTime,
         hours,
         status: "scheduled",
-        spot: s.settings.spotName || "Brouwersdam, NL",
+        spot: s.settings.spotName || "Sample Spot, NL",
         notes: "",
         meetingType: i === 0 ? 'front_desk' : 'beach',
         tjkiteImportKey: importKey
@@ -740,8 +738,8 @@ function readAuth() {
 function writeAuth(auth) { sessionStorage.setItem(AUTH_KEY, JSON.stringify(auth)); }
 function clearAuth()     { sessionStorage.removeItem(AUTH_KEY); }
 
-function LoginScreen({ instructors, admins, ownerPassword, onLogin }) {
-  const [mode, setMode]         = useState("admin"); // "admin" | "owner" | "instructor"
+function LoginScreen({ instructors, admins, onLogin }) {
+  const [mode, setMode]         = useState("admin"); // "admin" | "instructor"
   const [password, setPassword] = useState("");
   const [adminSelId, setAdminSelId] = useState((admins||[])[0]?.id || "");
   const [selId, setSelId]       = useState(instructors[0]?.id || "");
@@ -755,14 +753,8 @@ function LoginScreen({ instructors, admins, ownerPassword, onLogin }) {
     if (mode === "admin") {
       const admin = (admins||[]).find(a => a.id === adminSelId);
       if (!admin) { setError("Select an admin."); return; }
-      if (password === (admin.password || "tjkite2026")) {
+      if (password === (admin.password || "1234")) {
         onLogin({ role: "admin", adminId: admin.id });
-      } else {
-        setError("Incorrect password.");
-      }
-    } else if (mode === "owner") {
-      if (password === (ownerPassword || "owner2026")) {
-        onLogin({ role: "owner", adminId: null });
       } else {
         setError("Incorrect password.");
       }
@@ -785,12 +777,12 @@ function LoginScreen({ instructors, admins, ownerPassword, onLogin }) {
         <div className="text-center mb-6">
           <div className="text-5xl mb-2">🪁</div>
           <h1 className="text-xl font-bold text-slate-800">TJKite Manager</h1>
-          <p className="text-sm text-slate-500 mt-1">Brouwersdam</p>
+          <p className="text-sm text-slate-500 mt-1">Kite School Manager</p>
         </div>
 
         {/* Role toggle */}
         <div className="flex rounded-lg border border-slate-200 overflow-hidden mb-5 text-sm">
-          {[["admin","Admin"],["owner","Owner"],["instructor","Instructor"]].map(([m,l]) => (
+          {[["admin","Admin"],["instructor","Instructor"]].map(([m,l]) => (
             <button key={m} type="button"
               className={classNames("flex-1 py-2 font-medium transition",
                 mode===m ? "bg-sky-600 text-white" : "bg-white text-slate-600 hover:bg-slate-50")}
@@ -827,20 +819,6 @@ function LoginScreen({ instructors, admins, ownerPassword, onLogin }) {
               </div>
             </>
           )}
-          {mode === "owner" && (
-            <div>
-              <label className="text-xs font-semibold text-slate-500 block mb-1">Password</label>
-              <div className="relative">
-                <input autoFocus type={showPw ? "text" : "password"}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm pr-10 focus:outline-none focus:ring-2 focus:ring-sky-400"
-                  placeholder="Owner password"
-                  value={password} onChange={e=>setPassword(e.target.value)} />
-                <button type="button" tabIndex={-1}
-                  className="absolute right-2 top-2 text-slate-400 hover:text-slate-600 text-xs"
-                  onClick={()=>setShowPw(v=>!v)}>{showPw ? "hide" : "show"}</button>
-              </div>
-            </div>
-          )}
           {mode === "instructor" && (
             <>
               <div>
@@ -871,9 +849,7 @@ function LoginScreen({ instructors, admins, ownerPassword, onLogin }) {
           </button>
         </form>
         <p className="text-center text-[11px] text-slate-400 mt-4">
-          {mode === "instructor" ? "Default PIN: 1234 (set per-instructor in Admin → Instructors)"
-           : mode === "owner" ? "Default: owner2026 (change in Admin → Settings)"
-           : ""}
+          {mode === "instructor" ? "Default PIN: 1234 (set per-instructor in Admin → Instructors)" : ""}
         </p>
       </div>
     </div>
@@ -963,7 +939,7 @@ function App() {
     setState(s => {
       if (s.settings.spotName !== "Tarifa, ES") return s;
       return { ...s, settings: { ...s.settings,
-        spotName: "Brouwersdam, NL", lat: 51.736, lon: 3.843 }};
+        spotName: "Sample Spot, NL", lat: 51.736, lon: 3.843 }};
     });
     localStorage.setItem(BOOT_KEY, "1");
   }, []);
@@ -1128,13 +1104,11 @@ function App() {
     return <LoginScreen
       instructors={state.instructors}
       admins={state.admins || SEED.admins}
-      ownerPassword={state.settings.ownerPassword}
-      onLogin={(a) => { writeAuth(a); setAuth(a); if (a.role === "instructor") setTab("myhours"); else if (a.role === "owner") setTab("salaries"); }} />;
+      onLogin={(a) => { writeAuth(a); setAuth(a); if (a.role === "instructor") setTab("myhours"); }} />;
   }
 
   const isAdmin      = auth.role === "admin";
-  const isOwner      = auth.role === "owner";
-  const canEdit      = isAdmin || isOwner;  // owner = full edit; instructor = own tabs only
+  const canEdit      = isAdmin;  // instructor = own tabs only
   const myInstructor = auth.role === "instructor" ? state.instructors.find(i => i.id === auth.instructorId) : null;
   const myAdmin      = isAdmin ? (state.admins || []).find(a => a.id === auth.adminId) : null;
   // Per-admin myHours: state.myHours[adminId] or empty object
@@ -1161,12 +1135,9 @@ function App() {
     ["settings","Settings"],
   ];
   const INSTRUCTOR_TABS = new Set(["schedule","myhours","salaries"]);
-  const OWNER_TABS      = new Set(["dashboard","students","lessons","schedule","salaries","import"]);
   const visibleTabs = isAdmin
     ? ALL_TABS
-    : isOwner
-      ? ALL_TABS.filter(([k]) => OWNER_TABS.has(k))
-      : ALL_TABS.filter(([k]) => INSTRUCTOR_TABS.has(k));
+    : ALL_TABS.filter(([k]) => INSTRUCTOR_TABS.has(k));
 
   return (
     <div className="min-h-screen text-slate-800">
@@ -1207,9 +1178,8 @@ function App() {
           <div className="flex items-center gap-1.5 ml-auto sm:ml-2 sm:pl-2 sm:border-l sm:border-slate-200">
             <span className={classNames("text-[11px] px-2 py-1 rounded-full font-medium",
               isAdmin ? "bg-sky-100 text-sky-700"
-              : isOwner ? "bg-amber-100 text-amber-700"
               : "bg-emerald-100 text-emerald-700")}>
-              {isAdmin ? (myAdmin?.name || "Admin") : isOwner ? "Owner" : myInstructor?.name || "Instructor"}
+              {isAdmin ? (myAdmin?.name || "Admin") : myInstructor?.name || "Instructor"}
             </span>
             <button className="text-[11px] text-slate-400 hover:text-slate-700 hover:underline"
                     onClick={logout}>Out</button>
@@ -1286,9 +1256,9 @@ function App() {
                                   addStudent={(s)=>{ const id=uid(); setState(st=>({...st,students:[...st.students,{id,createdAt:todayISO(),...s}]})); return id; }}
                                   tasks={state.tasks||[]} addTask={addTask} updTask={updTask} delTask={delTask}
                                   windy={windy} tide={tide}
-                                  openStudentProfile={(isAdmin||isOwner) ? openStudentProfile : null}
+                                  openStudentProfile={isAdmin ? openStudentProfile : null}
                                   openLesson={isAdmin ? openLesson : null}
-                                  lockedInstructorId={isAdmin||isOwner ? null : auth.instructorId} />}
+                                  lockedInstructorId={isAdmin ? null : auth.instructorId} />}
         {tab==="compare"     && <CompareForecast state={state} windy={windy} />}
         {tab==="voucher"     && <VoucherTab state={state} addVoucher={addVoucher} />}
         {tab==="myhours"     && <MyHours myHours={myAdminHours}
@@ -1454,7 +1424,7 @@ function importBuildData(entries) {
         const d = new Date(e.arrival); d.setDate(d.getDate()+i);
         lessons.push({ id:Math.random().toString(36).slice(2,10), studentId:id, instructorId:'',
           date:d.toISOString().slice(0,10), startTime:e.startTime, hours:h, status:'scheduled',
-          spot:'Brouwersdam, NL',
+          spot:'Sample Spot, NL',
           notes:`${plan.label} day ${i+1}${e.sparpreis?' · Sparpreis':''}`,
           meetingType: i === 0 ? 'front_desk' : 'beach',
           tjkiteImportKey:`${tjkiteKey}|${e.course}|${i+1}` });
@@ -1462,7 +1432,7 @@ function importBuildData(entries) {
     } else if (e.arrival) {
       lessons.push({ id:Math.random().toString(36).slice(2,10), studentId:id, instructorId:'',
         date:e.arrival, startTime:e.startTime, hours:1.5, status:'scheduled',
-        spot:'Brouwersdam, NL', notes:e.courseLabel||e.notes||'',
+        spot:'Sample Spot, NL', notes:e.courseLabel||e.notes||'',
         tjkiteImportKey:`${tjkiteKey}|unknown|1` });
     }
   }
@@ -2918,20 +2888,20 @@ function VoucherTab({ state, addVoucher }) {
     recordVoucher();
     bumpVoucherNo(issued);
     // 2. Open a pre-filled email draft (to TJKite inbox for now — forward to student manually)
-    const TJKITE_EMAIL = "brouwersdam@kiteboarding-club.com";
+    const TJKITE_EMAIL = "info@example.com";
     const subject = encodeURIComponent(`Ihr TJKite Gutschein ${voucherNo} – ${data.service}`);
     const body = encodeURIComponent(
 `Hallo ${recipient},
 
-vielen Dank für Ihre Buchung bei TJKite Brouwersdam!
+vielen Dank für Ihre Buchung bei TJKite!
 
 Im Anhang finden Sie Ihren Gutschein (${voucherNo}) über ${data.amount} für: ${data.service}.
 
 Wir freuen uns auf Sie!
 
 Mit freundlichen Grüßen
-TJKite Brouwersdam
-brouwersdam@kiteboarding-club.com`
+TJKite
+info@example.com`
     );
     const mailto = `mailto:${TJKITE_EMAIL}?subject=${subject}&body=${body}`;
     window.open(mailto, "_blank");
@@ -3995,7 +3965,7 @@ function Lessons({ state, add, upd, del, updStudent, updInstr, pendingLessonId, 
                   display={v=>LESSON_TYPE_OPTIONS.find(o=>o.value===v)?.label||"— type —"}/>
           <Select label="Status" value={draft.status} onChange={v=>setDraft({...draft, status:v})}
                   options={["scheduled","completed","cancelled"]} />
-          {/* Meeting type toggle — shown when editing (admin/owner only since upd is only passed when canEdit) */}
+          {/* Meeting type toggle — shown when editing (admin only since upd is only passed when canEdit) */}
           {editing && upd && (
             <div>
               <label className="text-xs text-slate-500 block mb-1">Check-in (30 min before)</label>
@@ -4930,7 +4900,7 @@ function Schedule({ state, updLesson, delLesson, updGroup, delGroup, updStudent,
           startTime: tmpl.startTime,
           hours: tmpl.hours,
           status: "scheduled",
-          spot: tmpl.spot || state.settings.spotName || "Brouwersdam, NL",
+          spot: tmpl.spot || state.settings.spotName || "Sample Spot, NL",
           notes: tmpl.notes || "",
         }));
         const gid = newLessons.length > 1 ? ("grp:" + pasteDate + "|" + (tmpl.courseCode||"") + "|" + tmpl.startTime) : undefined;
@@ -5158,7 +5128,7 @@ function Schedule({ state, updLesson, delLesson, updGroup, delGroup, updStudent,
                     hours: newLessonDraft.hours,
                     lessonType: newLessonDraft.lessonType || undefined,
                     status: "scheduled",
-                    spot: state.settings.spotName || "Brouwersdam, NL",
+                    spot: state.settings.spotName || "Sample Spot, NL",
                     notes: newLessonDraft.notes,
                   });
                   setShowNewLesson(false);
@@ -5273,7 +5243,7 @@ function Schedule({ state, updLesson, delLesson, updGroup, delGroup, updStudent,
                   startTime: tmpl.startTime,
                   hours: tmpl.hours,
                   status: "scheduled",
-                  spot: tmpl.spot || state.settings.spotName || "Brouwersdam, NL",
+                  spot: tmpl.spot || state.settings.spotName || "Sample Spot, NL",
                   notes: tmpl.notes || "",
                 }));
                 // If multiple students, assign shared groupId
@@ -5842,7 +5812,7 @@ function Schedule({ state, updLesson, delLesson, updGroup, delGroup, updStudent,
                       if (!sel.groupId) updLesson?.(sel.id, { groupId: gid });
                       addLesson({ studentId: pickStudentId, instructorId: sel.instructorId,
                         date: sel.date, startTime: sel.startTime, hours: sel.hours,
-                        spot: sel.spot || state.settings?.spotName || "Brouwersdam, NL",
+                        spot: sel.spot || state.settings?.spotName || "Sample Spot, NL",
                         groupId: gid, status: "scheduled" });
                       closeAddToGroup();
                       setSelected(gid);
@@ -5930,7 +5900,7 @@ function Schedule({ state, updLesson, delLesson, updGroup, delGroup, updStudent,
                         if (!sel.groupId) updLesson?.(sel.id, { groupId: gid });
                         addLesson({ studentId: newId, instructorId: sel.instructorId,
                           date: sel.date, startTime: sel.startTime, hours: sel.hours,
-                          spot: sel.spot || state.settings?.spotName || "Brouwersdam, NL",
+                          spot: sel.spot || state.settings?.spotName || "Sample Spot, NL",
                           groupId: gid, status: "scheduled" });
                         closeAddToGroup();
                         setSelected(gid);
@@ -5991,7 +5961,7 @@ function Schedule({ state, updLesson, delLesson, updGroup, delGroup, updStudent,
                 onChange={e => updLesson(sel.id, { notes: e.target.value })}
               />
             </div>
-            {/* Meeting type toggle — admin/owner only (updLesson is null for instructors) */}
+            {/* Meeting type toggle — admin only (updLesson is null for instructors) */}
             {updLesson && (
               <div className="md:col-span-3">
                 <label className="text-[10px] text-slate-500 font-semibold uppercase tracking-wide block mb-0.5">Check-in (30 min before)</label>
@@ -6839,7 +6809,7 @@ function exportSalaryXLSX(opts) {
     const aoa = [];
 
     // Row 1: title
-    aoa.push(["TJKite Brouwersdam – Provisionsliste 2026"]);
+    aoa.push(["TJKite – Provisionsliste 2026"]);
     aoa.push([]);
 
     // Row 3: Nr + Datum headers
@@ -6909,7 +6879,7 @@ function exportSalaryXLSX(opts) {
     const totalCols = COLS.length;
 
     const aoa = [];
-    aoa.push([`TJKite Brouwersdam – Provisionsliste ${periodLabel}`]);
+    aoa.push([`TJKite – Provisionsliste ${periodLabel}`]);
     aoa.push([]);
     aoa.push(["Nr.", periodLabel, "Bem.", ...dateLabels.map(()=>"Datum:"), "Kurs Prov.:", ""]);
     aoa.push(["", "", "", ...dateLabels, "", ""]);
@@ -6948,7 +6918,7 @@ function exportSalaryXLSX(opts) {
     const insR = (summaryRows||[]).map(r=>[r.ins.name, r.actualH, +r.salary.toFixed(2)]);
     const admR = (adminSummaryRows||[]).filter(r=>r.actualH>0).map(r=>[r.admin.name+" (Admin)", r.actualH, +r.salary.toFixed(2)]);
     const aoa = [
-      [`TJKite Brouwersdam – Provisionsliste — ${periodLabel}`],
+      [`TJKite – Provisionsliste — ${periodLabel}`],
       [],
       ["Name","Stunden (h)","Gehalt (€)"],
       ...insR,
@@ -7183,7 +7153,7 @@ function SalaryReport({ instructors, lessons, tasks, students, courseRates, task
       {/* ── Header bar ── */}
       <div className="flex items-center gap-2 flex-wrap">
         <div>
-          <div className="font-bold text-base text-slate-800">{myInstructorOnly ? `My Salary — ${(instructors[0]?.name||"")}` : "TJKite Brouwersdam – Provisionsliste 2026"}</div>
+          <div className="font-bold text-base text-slate-800">{myInstructorOnly ? `My Salary — ${(instructors[0]?.name||"")}` : "TJKite – Provisionsliste 2026"}</div>
           <div className="text-xs text-slate-500">{period==="week"?`${localISO(days[0])} – ${localISO(days[6])}`:period==="month"?new Date(anchor).toLocaleString("default",{month:"long",year:"numeric"}):"Gesamtzeitraum"}</div>
         </div>
         <div className="flex gap-1 ml-auto flex-wrap">
@@ -7622,7 +7592,7 @@ function MyHours({ myHours, upd, instructorId, adminId, lessons, students, instr
       startTime: newLesson.startTime,
       hours: +newLesson.hours || 1.5,
       lessonType: newLesson.lessonType || undefined,
-      spot: state?.settings?.spotName || "Brouwersdam, NL",
+      spot: state?.settings?.spotName || "Sample Spot, NL",
       source: "myhours",
     });
     closeAddForm();
@@ -8043,7 +8013,7 @@ function MyHours({ myHours, upd, instructorId, adminId, lessons, students, instr
 
     // Recipient
     doc.setFont("helvetica","normal"); doc.setFontSize(10);
-    doc.text("V.O.F. Kiteboarding Club Brouwersdam", L, 44);
+    doc.text("V.O.F. Kiteboarding Club", L, 44);
     doc.text("Kuijerdamseweg 4 Rg", L, 49);
     doc.text("4326 LL Noordwelle", L, 54);
     doc.text("brouwersdam@kiteboarding-club.com", L, 62);
@@ -8219,7 +8189,7 @@ function MyHours({ myHours, upd, instructorId, adminId, lessons, students, instr
             </div>
             <div>
               <div className="font-semibold text-slate-800 mb-1">To</div>
-              <div className="font-medium">V.O.F. Kiteboarding Club Brouwersdam</div>
+              <div className="font-medium">V.O.F. Kiteboarding Club</div>
               <div>Kuijerdamseweg 4 Rg</div>
               <div>4326 LL Noordwelle</div>
             </div>
@@ -8731,15 +8701,6 @@ function Settings({ state, upd, exportJSON, importJSON, mergeJSON, resetAll }) {
             ))}
           </div>
           <p className="text-[11px] text-slate-400 mt-2">Each admin logs in by selecting their name + entering their password.</p>
-        </div>
-
-        {/* Owner password */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
-          <div>
-            <Input label="Owner password" type="password" value={state.settings.ownerPassword||""}
-                   onChange={v=>upd({settings:{...state.settings, ownerPassword:v}})}/>
-            <p className="text-[11px] text-slate-400 mt-0.5">Read-only view: Students, Lessons, Schedule, Salaries. Default: owner2026</p>
-          </div>
         </div>
         <p className="text-xs text-slate-500 mt-3">Instructor PINs are set per-instructor in the Instructors tab.</p>
       </section>
