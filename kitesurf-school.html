@@ -1125,7 +1125,6 @@ function App() {
     ["lessons","Lessons"],
     ["schedule","Schedule"],
     ["compare","Compare"],
-    ["voucher","Voucher"],
     ["myhours","My Hours"],
     ["schoolhours","School Hours"],
     ["salaries","Salaries"],
@@ -1260,7 +1259,6 @@ function App() {
                                   openLesson={isAdmin ? openLesson : null}
                                   lockedInstructorId={isAdmin ? null : auth.instructorId} />}
         {tab==="compare"     && <CompareForecast state={state} windy={windy} />}
-        {tab==="voucher"     && <VoucherTab state={state} addVoucher={addVoucher} />}
         {tab==="myhours"     && <MyHours myHours={myAdminHours}
                                   upd={setMyAdminHours}
                                   instructorId={isAdmin ? null : auth.instructorId}

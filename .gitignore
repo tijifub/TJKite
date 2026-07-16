@@ -15,4 +15,3 @@ students.csv
 # dev:cf / deploy. Never edit these directly.
 public/index.html
 public/students-data.js
-public/voucher-bg.jpg

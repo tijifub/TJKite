@@ -16,7 +16,6 @@ const PUBLIC = path.join(ROOT, "public");
 const files = [
   ["kitesurf-school.html", "index.html"],
   ["students-data.js", "students-data.js"],
-  ["voucher-bg.jpg", "voucher-bg.jpg"],
 ];
 
 fs.mkdirSync(PUBLIC, { recursive: true });
