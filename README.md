@@ -19,7 +19,7 @@ The HTML, students-data.js and voucher-bg.jpg live at the project root — alway
 ├── package.json
 ├── public/                    ← generated (gitignored) — do not edit directly
 ├── functions/
-│   ├── _middleware.js         ← Basic Auth gate
+│   ├── _middleware.js         ← auth gate (currently disabled)
 │   └── api/
 │       ├── state.js           ← KV-backed
 │       └── tide.js            ← RWS + Open-Meteo
@@ -38,7 +38,7 @@ Two ways to run, pick whichever feels closer to prod:
 npm run dev
 # → http://localhost:8787
 
-# Cloudflare runtime locally (Basic Auth, KV-backed state):
+# Cloudflare runtime locally (no auth currently, KV-backed state):
 cp .dev.vars.example .dev.vars   # set TJKITE_PASSWORD locally (gitignored, never commit)
 npm run dev:cf   # runs sync-public.js automatically first
 ```
@@ -91,7 +91,7 @@ See `CLOUDFLARE.md` for details (KV migration, free-tier limits, debug tips).
 ## Auth model
 
 - **Local Node server**: no auth (same as before).
-- **Cloudflare**: HTTP Basic Auth on every route. Username is ignored, password must match the `TJKITE_PASSWORD` secret (dashboard-managed, encrypted — never put this in `wrangler.toml`, which is committed to this public repo). Browser caches credentials per session.
+- **Cloudflare**: currently **no auth** — disabled for the test/demo phase (see `functions/_middleware.js` to re-enable HTTP Basic Auth before adding real data). The in-app login screen is client-side only and does not protect `/api/state`.
 
 ## Migrating local state to production
 
