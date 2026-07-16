@@ -1130,7 +1130,6 @@ function App() {
     ["salaries","Salaries"],
     ["courses","Courses"],
     ["templates","TJKite Templates"],
-    ["import","📥 Import"],
     ["settings","Settings"],
   ];
   const INSTRUCTOR_TABS = new Set(["schedule","myhours","salaries"]);
@@ -1203,7 +1202,7 @@ function App() {
               <button key={k} onClick={()=>{ setTab(k); setMobileMenuOpen(false); }}
                 className={classNames("py-2 px-1 rounded-xl text-xs font-medium transition text-center",
                   tab===k ? "bg-sky-500 text-white" : "bg-slate-50 text-slate-600 hover:bg-slate-100")}>
-                {({'dashboard':'🏠 Home','students':'👥 Students','instructors':'🏄 Instructors','lessons':'📋 Lessons','schedule':'📅 Schedule','compare':'📊 Compare','voucher':'🎫 Voucher','myhours':'⏱ My Hours','schoolhours':'🏫 School Hrs','salaries':'💶 Salary','courses':'📚 Courses','templates':'💬 Messages','import':'📥 Import','settings':'⚙️ Settings'})[k] || l}
+                {({'dashboard':'🏠 Home','students':'👥 Students','instructors':'🏄 Instructors','lessons':'📋 Lessons','schedule':'📅 Schedule','compare':'📊 Compare','myhours':'⏱ My Hours','schoolhours':'🏫 School Hrs','salaries':'💶 Salary','courses':'📚 Courses','templates':'💬 Messages','settings':'⚙️ Settings'})[k] || l}
               </button>
             ))}
           </div>
@@ -1279,14 +1278,6 @@ function App() {
         {tab==="courses"     && <Courses />}
         {tab==="templates"   && <Templates state={state}
                                   setTemplates={(t)=>upd({templates:t})} />}
-        {tab==="import"      && <ImportTab
-                                  onImport={(newStudents, newLessons) => setState(s => {
-                                    const existingKeys  = new Set(s.students.map(x => x.tjkiteKey));
-                                    const existingIKeys = new Set(s.lessons.map(x => x.tjkiteImportKey).filter(Boolean));
-                                    const addStu = newStudents.filter(x => !existingKeys.has(x.tjkiteKey));
-                                    const addLes = newLessons.filter(x => !existingIKeys.has(x.tjkiteImportKey));
-                                    return { ...s, students: [...s.students, ...addStu], lessons: [...s.lessons, ...addLes] };
-                                  })} />}
         {tab==="settings"    && <Settings state={state} upd={upd}
                                   exportJSON={exportJSON} importJSON={importJSON} mergeJSON={mergeJSON} resetAll={resetAll} />}
       </main>
