@@ -532,14 +532,14 @@ function useMultiForecast(settings) {
 
 
 const TJKITE_COURSE_PLAN = {
-  SCH:   { hours: [1.5], label: "Schnupperkurs" },
-  AK:    { hours: [1.5, 1.5], label: "Aufbaukurs" },
-  GK:    { hours: [1.5, 1.5, 1], label: "Grundkurs" },
-  KC:    { hours: [1.5, 1.5, 1.5, 1.5], label: "Kitecamp" },
+  SCH:   { hours: [1.5], label: "Trial Course" },
+  AK:    { hours: [1.5, 1.5], label: "Advanced Course" },
+  GK:    { hours: [1.5, 1.5, 1], label: "Basic Course" },
+  KC:    { hours: [1.5, 1.5, 1.5, 1.5], label: "Kite Camp" },
   "WF-BC": { hours: [1.5, 1.5], label: "Wingfoil Basic" },
   "WF-C":  { hours: [1.5, 1.5, 1.5, 1.5], label: "Wingfoil Camp" },
-  "WF-IT": { hours: [3], label: "Wingfoil Individualtraining" },
-  "IT":    { hours: [3], label: "Kitesurf Individualtraining" }
+  "WF-IT": { hours: [3], label: "Wingfoil Private Lesson" },
+  "IT":    { hours: [3], label: "Kitesurf Private Lesson" }
 };
 
 // Hours per session by course, group size threshold, and day-within-course.
@@ -2476,13 +2476,13 @@ const VOUCHER_FIELD_LABELS = {
 
 const VOUCHER_PRESETS = [
   // Kite courses
-  { id: "SCH",    group: "🪁 Kite",     label: "Schnupperkurs (1.5h)",       price: 115 },
-  { id: "GK",     group: "🪁 Kite",     label: "Grundkurs · weekend (4h)",   price: 319 },
-  { id: "GK-SP",  group: "🪁 Kite",     label: "Grundkurs · Sparpreis (4h)", price: 299 },
-  { id: "KC",     group: "🪁 Kite",     label: "Kitecamp · weekend (6h)",    price: 499 },
-  { id: "KC-SP",  group: "🪁 Kite",     label: "Kitecamp · Sparpreis (6h)",  price: 479 },
-  { id: "AK",     group: "🪁 Kite",     label: "Aufbaukurs · weekend (3h)",  price: 250 },
-  { id: "AK-SP",  group: "🪁 Kite",     label: "Aufbaukurs · Sparpreis (3h)",price: 230 },
+  { id: "SCH",    group: "🪁 Kite",     label: "Trial Course (1.5h)",       price: 115 },
+  { id: "GK",     group: "🪁 Kite",     label: "Basic Course · weekend (4h)",   price: 319 },
+  { id: "GK-SP",  group: "🪁 Kite",     label: "Basic Course · Sparpreis (4h)", price: 299 },
+  { id: "KC",     group: "🪁 Kite",     label: "Kite Camp · weekend (6h)",    price: 499 },
+  { id: "KC-SP",  group: "🪁 Kite",     label: "Kite Camp · Sparpreis (6h)",  price: 479 },
+  { id: "AK",     group: "🪁 Kite",     label: "Advanced Course · weekend (3h)",  price: 250 },
+  { id: "AK-SP",  group: "🪁 Kite",     label: "Advanced Course · Sparpreis (3h)",price: 230 },
   { id: "KIDS",   group: "🪁 Kite",     label: "Kids Kitesurf (4.5h)",       price: 299 },
   { id: "WAVES",  group: "🪁 Kite",     label: "Intro Waves (1.5h)",         price: 225 },
   // Wingfoil courses
@@ -2500,9 +2500,9 @@ const VOUCHER_PRESETS = [
 // Course quick-fill presets for the Students form
 // id = unique key; code = course code used for salary; sparpreis = weekday/special price flag
 const COURSE_PRICE_DEFAULTS = [
-  { id: "SCH",      code: "SCH",   label: "Trial Course / Schnupperkurs (1.5 h)",  hours: 1.5, price: 115 },
-  { id: "GK",       code: "GK",    label: "Basis Course / Grundkurs weekend (4 h)", hours: 4,   price: 319 },
-  { id: "GK-SP",    code: "GK",    label: "Basic Course weekday / Sparpreis (4 h)", hours: 4,   price: 299, sparpreis: true },
+  { id: "SCH",      code: "SCH",   label: "Trial Course (1.5 h)",  hours: 1.5, price: 115 },
+  { id: "GK",       code: "GK",    label: "Basic Course · weekend (4 h)", hours: 4,   price: 319 },
+  { id: "GK-SP",    code: "GK",    label: "Basic Course · weekday / Sparpreis (4 h)", hours: 4,   price: 299, sparpreis: true },
   { id: "KC",       code: "KC",    label: "Kite Camp weekend (6 h)",               hours: 6,   price: 499 },
   { id: "KC-SP",    code: "KC",    label: "Kite Camp weekday / Sparpreis (6 h)",   hours: 6,   price: 479, sparpreis: true },
   { id: "AK",       code: "AK",    label: "Advanced Course weekend (3 h)",         hours: 3,   price: 250 },
@@ -3324,7 +3324,7 @@ const WEEKLY_GRID = {
 };
 
 function Courses() {
-  const [lang, setLang] = useState("both"); // "de" | "en" | "both"
+  const [lang, setLang] = useState("en"); // "de" | "en" | "both"
 
   const T = (de, en) => {
     if (lang === "de") return de;
@@ -3863,13 +3863,13 @@ function Instructors({ state, add, upd, del }) {
 // ---------- Lessons ----------
 const LESSON_TYPE_OPTIONS = [
   { value: "",      label: "— type —" },
-  { value: "SCH",   label: "SCH · Schnupperkurs" },
-  { value: "AK",    label: "AK · Aufbaukurs" },
-  { value: "GK",    label: "GK · Grundkurs" },
-  { value: "KC",    label: "KC · Kitecamp" },
-  { value: "IT",    label: "IT · Einzelunterricht" },
-  { value: "D-IT",  label: "D-IT · Doppel-IT" },
-  { value: "Kinder",label: "Kinder · Kinderkurs" },
+  { value: "SCH",   label: "SCH · Trial Course" },
+  { value: "AK",    label: "AK · Advanced Course" },
+  { value: "GK",    label: "GK · Basic Course" },
+  { value: "KC",    label: "KC · Kite Camp" },
+  { value: "IT",    label: "IT · Private Lesson" },
+  { value: "D-IT",  label: "D-IT · Double Private" },
+  { value: "Kinder",label: "Kinder · Kids Course" },
   { value: "WF-BC", label: "WF-BC · Wingfoil Basic" },
   { value: "WF-C",  label: "WF-C · Wingfoil Camp" },
   { value: "WF-IT", label: "WF-IT · Wingfoil IT" },
@@ -6646,10 +6646,10 @@ function Templates({ state, setTemplates }) {
 
 // ---------- Lesson types (selectable when adding a lesson manually) ----------
 const LESSON_TYPES = [
-  { code: "GK",    label: "GK – Grundkurs / Basic Course" },
-  { code: "KC",    label: "KC – Kitecamp" },
-  { code: "AK",    label: "AK – Aufbaukurs / Advanced" },
-  { code: "SCH",   label: "SCH – Trial / Schnupperkurs" },
+  { code: "GK",    label: "GK – Basic Course" },
+  { code: "KC",    label: "KC – Kite Camp" },
+  { code: "AK",    label: "AK – Advanced Course" },
+  { code: "SCH",   label: "SCH – Trial Course" },
   { code: "IT",    label: "IT – Individual Training" },
   { code: "KK",    label: "KK – Kids IT" },
   { code: "WAVES", label: "WAVES – Intro Kitesurfing Waves" },
@@ -7184,8 +7184,8 @@ function SalaryReport({ instructors, lessons, tasks, students, courseRates, task
       <details className="text-xs text-slate-500">
         <summary className="cursor-pointer hover:text-slate-700 select-none">Provisionssätze (€/h)</summary>
         <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-1.5">
-          {[["GK / KC / AK / SCH","€25/h"],["IT (privat)","€30/h"],["KK (Kinder IT)","€30/h"],
-            ["Doppel-IT","€35/h"],["WF-BC / WF-C / WF-IT","€35/h"],["Tasks","Stundensatz"]].map(([k,v])=>(
+          {[["GK / KC / AK / SCH","€25/h"],["IT (private)","€30/h"],["KK (kids private)","€30/h"],
+            ["Double IT","€35/h"],["WF-BC / WF-C / WF-IT","€35/h"],["Tasks","hourly rate"]].map(([k,v])=>(
             <div key={k} className="bg-slate-50 rounded px-2.5 py-1.5 flex justify-between gap-2">
               <span>{k}</span><span className="font-semibold text-slate-700">{v}</span>
             </div>
