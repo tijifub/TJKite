@@ -24,7 +24,6 @@ The HTML, students-data.js and voucher-bg.jpg live at the project root — alway
 │       ├── state.js           ← KV-backed
 │       └── tide.js            ← RWS + Open-Meteo
 ├── wrangler.toml
-├── .dev.vars.example
 ├── CLOUDFLARE.md              ← deploy details
 └── .github/workflows/deploy.yml
 ```
@@ -39,8 +38,7 @@ npm run dev
 # → http://localhost:8787
 
 # Cloudflare runtime locally (Basic Auth, KV-backed state):
-cp .dev.vars.example .dev.vars   # set TJKITE_PASSWORD
-npm run dev:cf   # runs sync-public.js automatically first
+npm run dev:cf   # runs sync-public.js automatically first — reads TJKITE_PASSWORD from wrangler.toml's [vars]
 ```
 
 ## CI/CD
@@ -55,9 +53,8 @@ Pick one of these:
    - **Root directory:** *(leave blank — repo root)*
    - **Build command:** `node sync-public.js`
    - **Build output directory:** `public`
-4. Add the `TJKITE_PASSWORD` secret under Settings → Environment variables (production scope).
-5. Run `npm run kv:create` once locally and paste both ids into `wrangler.toml`. Commit.
-6. Every push to `main` deploys automatically. No GitHub secrets, no workflow file needed.
+4. Run `npm run kv:create` once locally and paste both ids into `wrangler.toml`. Commit.
+5. Every push to `main` deploys automatically. No GitHub secrets, no workflow file needed.
 
 ### Option B — GitHub Actions (more control)
 
@@ -69,8 +66,7 @@ The repo ships with `.github/workflows/deploy.yml`. To use it:
    - `CLOUDFLARE_API_TOKEN`
    - `CLOUDFLARE_ACCOUNT_ID`
 4. Run `npm run kv:create` once locally, paste ids into `wrangler.toml`, commit.
-5. Run `npm run secret:set` once to set `TJKITE_PASSWORD` in Cloudflare (production).
-6. Push to `main` → workflow deploys. The workflow runs `sync-public.js` before deploying.
+5. Push to `main` → workflow deploys. The workflow runs `sync-public.js` before deploying.
 
 Pick A if you don't need extra steps (tests, lint, multiple environments) — it's zero config beyond pointing Cloudflare at the repo and setting the build command above. Use B if you want the deploy in your own pipeline.
 
@@ -82,7 +78,6 @@ If you'd rather skip CI for the first run:
 npm i
 npx wrangler login
 npm run kv:create        # paste the two ids into wrangler.toml
-npm run secret:set       # set TJKITE_PASSWORD on Cloudflare
 npm run deploy           # runs sync-public.js automatically first
 ```
 
@@ -91,7 +86,9 @@ See `CLOUDFLARE.md` for details (KV migration, free-tier limits, debug tips).
 ## Auth model
 
 - **Local Node server**: no auth (same as before).
-- **Cloudflare**: HTTP Basic Auth on every route. Username is ignored, password must match the `TJKITE_PASSWORD` secret. Browser caches credentials per session.
+- **Cloudflare**: HTTP Basic Auth on every route. Username is ignored, password must match `TJKITE_PASSWORD` in `wrangler.toml`'s `[vars]` block. Browser caches credentials per session.
+
+  Note: `wrangler.toml` is committed to this (public) repo, so this password is not actually secret — it's a placeholder speed bump, not real access control. Change it in `wrangler.toml` and redeploy if that matters for your use case.
 
 ## Migrating local state to production
 
