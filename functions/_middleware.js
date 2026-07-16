@@ -27,7 +27,8 @@ export const onRequest = async ({ request, env, next }) => {
       const decoded = atob(auth.slice(6));
       const password = decoded.slice(decoded.indexOf(":") + 1);
       ok = password === adminPwd || (instructorPwd && password === instructorPwd);
-    } catch { /* malformed header */ }
+    } catch { // malformed header
+    }
   }
 
   if (!ok) {
