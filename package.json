@@ -10,7 +10,8 @@
     "dev:cf": "wrangler pages dev",
     "predeploy": "npm run sync",
     "deploy": "wrangler pages deploy",
-    "kv:create": "wrangler kv namespace create TJKITE_KV && wrangler kv namespace create TJKITE_KV --preview"
+    "kv:create": "wrangler kv namespace create TJKITE_KV && wrangler kv namespace create TJKITE_KV --preview",
+    "secret:set": "wrangler pages secret put TJKITE_PASSWORD"
   },
   "devDependencies": {
     "wrangler": "^3"

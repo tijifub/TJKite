@@ -2,9 +2,6 @@ name = "tjkite"
 compatibility_date = "2026-04-01"
 pages_build_output_dir = "public"
 
-[vars]
-TJKITE_PASSWORD = "tjkite2026"
-
 [[kv_namespaces]]
 binding = "TJKITE_KV"
 id = "fabf47be7fa448f8a18f8a1740453c13"

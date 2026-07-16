@@ -10,7 +10,8 @@ Cloudflare needs `functions/`, `wrangler.toml`, and `public/` at the repo root �
 - `functions/_middleware.js` — HTTP Basic Auth gate over the whole site.
 - `functions/api/state.js` — `GET/PUT /api/state`, persists JSON in KV.
 - `functions/api/tide.js` — `GET /api/tide`, proxies Rijkswaterstaat with Open-Meteo fallback.
-- `wrangler.toml` — Pages + KV binding config, including the `TJKITE_PASSWORD` value under `[vars]`.
+- `wrangler.toml` — Pages + KV binding config.
+- `.dev.vars.example` — template for local secrets (copy to `.dev.vars`, never commit).
 
 ## One-time setup
 
@@ -27,11 +28,13 @@ Cloudflare needs `functions/`, `wrangler.toml`, and `public/` at the repo root �
    ```
    Wrangler prints two ids. Paste them into `wrangler.toml` (`id` and `preview_id`).
 
-3. **Local development**:
+3. **Local development** — copy the secrets template and pick a password:
    ```sh
+   cp .dev.vars.example .dev.vars
+   # edit .dev.vars
    npm run dev:cf   # runs sync-public.js automatically first
    ```
-   Open the printed URL. Browser will prompt for username/password — username is ignored, password must match `TJKITE_PASSWORD` from `wrangler.toml`.
+   Open the printed URL. Browser will prompt for username/password — username is ignored, password must match `TJKITE_PASSWORD`.
 
 ## Deploy
 
@@ -39,9 +42,14 @@ Cloudflare needs `functions/`, `wrangler.toml`, and `public/` at the repo root �
 npm run deploy   # runs sync-public.js automatically first
 ```
 
-First deploy will create the project. The password comes from `TJKITE_PASSWORD` in `wrangler.toml`'s `[vars]` block — edit that file to change it, rather than setting a dashboard secret.
+First deploy will create the project. Set the production password as a secret:
 
-Note: since `wrangler.toml` is committed to this repo, that password is visible to anyone with repo access. Fine for a demo/test project; if this ever serves real data, move it to a Cloudflare dashboard "Secret" (encrypted) variable instead, which is excluded from source control.
+```sh
+npm run secret:set
+# paste a strong password when prompted
+```
+
+Set it as a **Secret** (encrypted), not a plain variable — Cloudflare won't let you add a Secret with the same name as one already declared in `wrangler.toml`'s `[vars]`, so keep `TJKITE_PASSWORD` out of that file entirely.
 
 ## Cloudflare dashboard git integration settings
 
@@ -58,7 +66,7 @@ If deploying via Workers & Pages → Connect to Git instead of the CLI or GitHub
 | Server | Node `http.createServer` | Pages Functions (Workers) |
 | State storage | `shared-data.json` on disk | KV under key `tjkite-state` |
 | Tide proxy | `https.request` | `fetch()` |
-| Auth | none | HTTP Basic, password from `TJKITE_PASSWORD` in `wrangler.toml` |
+| Auth | none | HTTP Basic, password from `TJKITE_PASSWORD` secret |
 
 The HTML is byte-identical except for the filename (`kitesurf-school.html` → `index.html` so `/` resolves cleanly).
 
